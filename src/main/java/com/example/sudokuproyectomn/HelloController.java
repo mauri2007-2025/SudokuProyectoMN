@@ -14,6 +14,16 @@ public class HelloController {
     private Button btnAyuda;
     @FXML
     private Button btnReiniciar;
+
+    @FXML
+    private void usarAyuda() {
+
+    }
+
+    @FXML
+    private void reiniciar() {
+
+    }
     @FXML
     public void nuevaPartida() {
 
