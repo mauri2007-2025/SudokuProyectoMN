@@ -1,10 +1,79 @@
 package com.example.sudokuproyectomn.model;
 
 import java.util.ArrayList;
+import java.util.Random;
 
 public class SudokuModel implements Validable {
 
     private ArrayList<ArrayList<Integer>> tablero;
+    private ArrayList<ArrayList<Integer>> solucion;
+
+
+    public void generarSolucion() {
+
+        solucion = new ArrayList<>();
+
+        solucion.add(new ArrayList<>(java.util.List.of(1,2,3,4,5,6)));
+        solucion.add(new ArrayList<>(java.util.List.of(4,5,6,1,2,3)));
+        solucion.add(new ArrayList<>(java.util.List.of(2,3,4,5,6,1)));
+        solucion.add(new ArrayList<>(java.util.List.of(5,6,1,2,3,4)));
+        solucion.add(new ArrayList<>(java.util.List.of(3,4,5,6,1,2)));
+        solucion.add(new ArrayList<>(java.util.List.of(6,1,2,3,4,5)));
+
+        mezclarNumeros();
+    }
+
+    public int getSolucion(int fila, int columna) {
+        return solucion.get(fila).get(columna);
+    }
+
+    private void intercambiarNumeros(int num1, int num2) {
+
+        for (int fila = 0; fila < 6; fila++) {
+
+            for (int columna = 0; columna < 6; columna++) {
+
+                int valor = solucion.get(fila).get(columna);
+
+                if (valor == num1) {
+
+                    solucion.get(fila).set(columna, -1);
+
+                } else if (valor == num2) {
+
+                    solucion.get(fila).set(columna, num1);
+                }
+            }
+        }
+
+        for (int fila = 0; fila < 6; fila++) {
+
+            for (int columna = 0; columna < 6; columna++) {
+
+                if (solucion.get(fila).get(columna) == -1) {
+
+                    solucion.get(fila).set(columna, num2);
+                }
+            }
+        }
+    }
+
+    private void mezclarNumeros() {
+
+        Random random = new Random();
+
+        for (int i = 0; i < 10; i++) {
+
+            int num1 = random.nextInt(6) + 1;
+            int num2 = random.nextInt(6) + 1;
+
+            while (num1 == num2) {
+                num2 = random.nextInt(6) + 1;
+            }
+
+            intercambiarNumeros(num1, num2);
+        }
+    }
 
     public SudokuModel() {
 
@@ -20,6 +89,8 @@ public class SudokuModel implements Validable {
 
             tablero.add(fila);
         }
+
+        generarSolucion();
     }
 
     public int getValor(int fila, int columna) {
@@ -92,26 +163,54 @@ public class SudokuModel implements Validable {
         return true;
     }
 
+    Random random = new Random();
 
     public void generarPartida() {
-        setValor(0, 0, 1);
-        setValor(0, 3, 4);
 
-        setValor(1, 1, 5);
-        setValor(1, 4, 2);
+        limpiarTablero();
 
-        setValor(2, 2, 4);
-        setValor(2, 5, 1);
+        generarSolucion();
 
-        setValor(3, 0, 5);
-        setValor(3, 3, 2);
+        for (int filaInicio = 0; filaInicio < 6; filaInicio += 2) {
 
-        setValor(4, 1, 4);
-        setValor(4, 4, 1);
+            for (int columnaInicio = 0; columnaInicio < 6; columnaInicio += 3) {
 
-        setValor(5, 2, 2);
-        setValor(5, 5, 5);
+                revelarDosPistasBloque(
+                        filaInicio,
+                        columnaInicio
+                );
+            }
+        }
     }
+
+    private void revelarDosPistasBloque(
+            int filaInicio,
+            int columnaInicio) {
+
+        Random random = new Random();
+
+        int pistas = 0;
+
+        while (pistas < 2) {
+
+            int fila =
+                    filaInicio + random.nextInt(2);
+
+            int columna =
+                    columnaInicio + random.nextInt(3);
+
+            if (tablero.get(fila).get(columna) == 0) {
+
+                tablero.get(fila).set(
+                        columna,
+                        solucion.get(fila).get(columna)
+                );
+
+                pistas++;
+            }
+        }
+    }
+
     public void limpiarTablero() {
 
         for (int fila = 0; fila < 6; fila++) {
@@ -121,5 +220,22 @@ public class SudokuModel implements Validable {
                 tablero.get(fila).set(columna, 0);
             }
         }
+    }
+
+    public boolean tableroCompleto() {
+
+        for (int fila = 0; fila < 6; fila++) {
+
+            for (int columna = 0; columna < 6; columna++) {
+
+                if (tablero.get(fila).get(columna)
+                        != solucion.get(fila).get(columna)) {
+
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
 }

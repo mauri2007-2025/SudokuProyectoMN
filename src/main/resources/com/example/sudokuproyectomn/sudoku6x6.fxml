@@ -23,7 +23,6 @@
             </Label>
             <Label prefHeight="18.0" prefWidth="268.0" text="Complete el tablero sin repetir números del 1 al 6" />
             <Label />
-            <Label text="Ayudas restantes: " />
          </children>
       </VBox>
    </top>

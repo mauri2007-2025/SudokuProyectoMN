@@ -9,6 +9,7 @@ import com.example.sudokuproyectomn.model.SudokuModel;
 
 import java.util.ArrayList;
 import java.util.Optional;
+import java.util.Random;
 
 public class HelloController {
 
@@ -87,6 +88,8 @@ public class HelloController {
 
     private ArrayList<TextField> celdas;
 
+    private boolean juegoTerminado = false;
+
     @FXML
     public void nuevaPartida() {
 
@@ -110,12 +113,73 @@ public class HelloController {
         }
     }
 
+    private TextField obtenerCelda(int fila, int columna) {
+        return celdas.get(columna * 6 + fila);
+    }
+
+    private void aplicarBordesBloques() {
+
+        for (int fila = 0; fila < 6; fila++) {
+
+            for (int columna = 0; columna < 6; columna++) {
+
+                TextField celda =
+                        obtenerCelda(fila, columna);
+
+                String estilo =
+                        "-fx-border-color:black;";
+
+                if (fila == 0 || fila == 2 || fila == 4)
+                    estilo += "-fx-border-top-width:3;";
+
+                if (fila == 1 || fila == 3 || fila == 5)
+                    estilo += "-fx-border-bottom-width:3;";
+
+                if (columna == 0 || columna == 3)
+                    estilo += "-fx-border-left-width:3;";
+
+                if (columna == 2 || columna == 5)
+                    estilo += "-fx-border-right-width:3;";
+
+                celda.setStyle(estilo);
+            }
+        }
+    }
+
+    private void colorearBloques() {
+
+        for (int fila = 0; fila < 6; fila++) {
+
+            for (int columna = 0; columna < 6; columna++) {
+
+                TextField celda =
+                        celdas.get(columna * 6 + fila);
+
+                int bloqueFila = fila / 2;
+                int bloqueColumna = columna / 3;
+
+                if ((bloqueFila + bloqueColumna) % 2 == 0) {
+
+                    celda.setStyle(
+                            "-fx-background-color:#F0F0F0;"
+                    );
+
+                } else {
+
+                    celda.setStyle(
+                            "-fx-background-color:white;"
+                    );
+                }
+            }
+        }
+    }
 
     private void limpiarVista() {
 
         for (TextField celda : celdas) {
             celda.clear();
         }
+        juegoTerminado = false;
     }
 
     private void limpiarEstilos() {
@@ -133,6 +197,72 @@ public class HelloController {
     @FXML
     private void usarAyuda() {
 
+        ArrayList<Integer> posicionesVacias =
+                new ArrayList<>();
+
+        for (int fila = 0; fila < 6; fila++) {
+
+            for (int columna = 0; columna < 6; columna++) {
+
+                if (modelo.getValor(fila, columna) == 0) {
+
+                    posicionesVacias.add(
+                            fila * 6 + columna
+                    );
+                }
+            }
+        }
+
+        if (posicionesVacias.size() <= 1) {
+
+            Alert alerta =
+                    new Alert(Alert.AlertType.INFORMATION);
+
+            alerta.setTitle("Ayuda");
+            alerta.setHeaderText(null);
+            alerta.setContentText(
+                    "La ayuda no puede completar el tablero."
+            );
+
+            alerta.showAndWait();
+
+            return;
+        }
+
+        Random random = new Random();
+
+        int posicion =
+                posicionesVacias.get(
+                        random.nextInt(
+                                posicionesVacias.size()
+                        )
+                );
+
+        int fila = posicion / 6;
+        int columna = posicion % 6;
+
+        int valorCorrecto =
+                modelo.getSolucion(fila, columna);
+
+        modelo.setValor(
+                fila,
+                columna,
+                valorCorrecto
+        );
+
+        int indice = fila * 6 + columna;
+
+        TextField celdaAyuda = celdas.get(indice);
+        celdaAyuda.setStyle(
+                "-fx-background-color: gold;" +
+                        "-fx-border-color: orange;" +
+                        "-fx-border-width: 3;" +
+                        "-fx-font-weight: bold;"
+        );
+
+        actualizarVista();
+        bloquearCasillasIniciales();
+        aplicarBordesBloques();
     }
 
     @FXML
@@ -217,8 +347,12 @@ public class HelloController {
 
                 } else {
 
-                    modelo.setValor(fila, columna,
-                            Integer.parseInt(nuevo));
+                    modelo.setValor(
+                            fila,
+                            columna,
+                            Integer.parseInt(nuevo)
+                    );
+
                     if (!modelo.esMovimientoValido(
                             fila,
                             columna,
@@ -234,11 +368,26 @@ public class HelloController {
                         celda.setStyle("");
                     }
                 }
+                        if (!juegoTerminado &&
+                                modelo.tableroCompleto()) {
 
-            });
+                            juegoTerminado = true;
+
+                            Alert alerta = new Alert(Alert.AlertType.INFORMATION);
+
+                            alerta.setTitle("Victoria");
+                            alerta.setHeaderText("¡Felicidades!");
+                            alerta.setContentText("Has completado el Sudoku.");
+
+                            alerta.showAndWait();
+                        }
+            }
+
+            );
 
         }
-
+        aplicarBordesBloques();
+        colorearBloques();
     }
 
     private void actualizarVista() {
